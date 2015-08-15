@@ -20,9 +20,13 @@ selected_Sec_List = pd.read_csv('selected_Sec_List-' + start_Date.toISO() + '-' 
 ExchangeRate = DataAPI.ChinaDataExchangeRateGet(indicID=u"M110000003",indicName=u"",beginDate=start_Date.strftime('%Y%m%d'),endDate=end_Date.strftime('%Y%m%d'),field=u"",pandas="1")[['periodDate','dataValue']]
 ExchangeRate = ExchangeRate.rename(index = pd.to_datetime(ExchangeRate['periodDate']))['dataValue']
 
+SZZS = DataAPI.MktIdxdGet(indexID=u"000001.ZICN",ticker=u"",tradeDate=u"",beginDate=start_Date.strftime('%Y%m%d'),endDate=end_Date.strftime('%Y%m%d'),field=u"",pandas="1")
+SZZS['inc_rate'] = (SZZS['closeIndex'] - SZZS['preCloseIndex'])/SZZS['preCloseIndex']
+SZZS = SZZS.rename(index = pd.to_datetime(SZZS['tradeDate']))
+
 section_Exchange_co_trend = pd.DataFrame({})
 section_Exchange_co_trend['USD2RMB_Exchange'] = ExchangeRate
 for section in selected_Sec_List.index.values:
-	section_Exchange_co_trend[selected_Sec_List.ix[section].typeName] = section_Data.loc[section_Data.typeID==section, 'ChangeIdx']
+	section_Exchange_co_trend[selected_Sec_List.ix[section].typeName] = section_Data.loc[section_Data.typeID==section, 'ChangeIdx'] - SZZS['inc_rate']
 
 pd.DataFrame(section_Exchange_co_trend.corr()['USD2RMB_Exchange'].order())
