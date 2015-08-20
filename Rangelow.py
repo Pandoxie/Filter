@@ -51,4 +51,4 @@ for stock in StockSnapShot.index.values:
 		StockSnapShot.loc[stock, 'Possible_New_Low'] = True
 
 stock_Selected = StockSnapShot.sort(columns='Price_Change', ascending=True).head(top_List)
-stock_Selected
+stock_Selected.to_csv('RangeLow_Selected.csv', encoding='utf-8')
