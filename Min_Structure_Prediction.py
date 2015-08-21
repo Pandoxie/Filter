@@ -4,7 +4,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
-from pandas import *
+import pandas as pd
 from CAL.PyCAL import *
 
 def isBuyingTime(macd, closePrices, tradeTiming, bandwidth):
@@ -24,15 +24,17 @@ def isBuyingTime(macd, closePrices, tradeTiming, bandwidth):
 bandwidth = 4
 recentwidth = 7
 barGap = 10
+analysis_Ticks = [15, 30, 60]
 
 stock_Selected = pd.read_csv('RangeLow_Selected.csv', encoding='utf-8', index_col=0)
-stock_Selected['15_MinuteBuy_Tick'] = False
-stock_Selected['15_MinuteBuy_Timing'] = ''
+for x in analysis_Ticks:
+	stock_Selected[str(x) + 'Min_Tick'] = False
+	stock_Selected[str(x) + 'Min_Timing'] = ''
 
 cal = Calendar('CHINA.SSE')
 end_Date = cal.advanceDate(Date.todaysDate(), Period('0D'), BizDayConvention.Preceding).toDateTime()
 start_Date = cal.advanceDate(end_Date, Period('-3W'), BizDayConvention.Preceding).toDateTime()
-stock_data = pd.read_csv('Hist_Min.csv', encoding='utf-8', parse_dates=True, index_col=0)
+stock_data = pd.read_csv('TS_Hist.csv', encoding='utf-8', parse_dates=True, index_col=0)
 stock_data.index.name = 'Date'
 stock_data.columns.name = 'StockNum'
 stock_Selected_List = [x.split('.')[0] for x in stock_Selected.index.values]
@@ -45,15 +47,20 @@ for stock in stock_data.columns.values:
 		stock_data[trade_day.isoformat()][stock] *= Adj_Data.loc[stock, trade_day.isoformat()]['accumAdjFactor']
 
 for stock in stock_data.columns.values:
-	nowPrices = DataAPI.MktBarRTIntraDayGet(securityID=Adj_Data.loc[stock]['secID'][0],startTime=u"09:30",endTime=u"",pandas="1").iloc[0:-1:15]
-	closePrices = np.append(stock_data.loc[~isnull(stock_data[stock]), stock].values, nowPrices['closePrice'].values)
-	tradeTiming = np.append(stock_data.loc[~isnull(stock_data[stock]), stock].index.values, pd.to_datetime(nowPrices['barTime']).values)
-	macd, macdsignal, macdhist = tb.MACD(closePrices, fastperiod=12, slowperiod=26, signalperiod=9)
-	isMinBuy, MinBuyTiming = isBuyingTime(macd, closePrices, tradeTiming, bandwidth)
-	if MinBuyTiming:
-		MinBuyTiming = pd.to_datetime(str(MinBuyTiming)).strftime('%Y-%m-%d  %H:%M:%S')
-	stock_Selected.loc[Adj_Data.loc[stock]['secID'][0], '15_MinuteBuy_Tick'] = isMinBuy
-	stock_Selected.loc[Adj_Data.loc[stock]['secID'][0], '15_MinuteBuy_Timing'] = MinBuyTiming
+	nowPrices = DataAPI.MktBarRTIntraDayGet(securityID=Adj_Data.loc[stock]['secID'][0],startTime=u"09:30",endTime=u"",pandas="1")
+	nowPrices = nowPrices.rename(index=pd.to_datetime(nowPrices['barTime']))
+	macd_structure = pd.DataFrame(stock_data[stock].append(nowPrices['closePrice']), columns={'closePrice'})
+	for x in analysis_Ticks:
+		x_structure = macd_structure.resample(str(x)+'min', how='last',closed='right', label='right')
+		x_structure = x_structure[~isnull(x_structure['closePrice'])]
+		closePrices = x_structure['closePrice'].values
+		tradeTiming = x_structure.index.values
+		macd, macdsignal, macdhist = tb.MACD(closePrices, fastperiod=12, slowperiod=26, signalperiod=9)
+		isMinBuy, MinBuyTiming = isBuyingTime(macd, closePrices, tradeTiming, bandwidth)
+		if MinBuyTiming:
+			MinBuyTiming = pd.to_datetime(str(MinBuyTiming)).strftime('%Y-%m-%d  %H:%M:%S')
+		stock_Selected.loc[Adj_Data.loc[stock]['secID'][0], str(x) + 'Min_Tick'] = isMinBuy
+		stock_Selected.loc[Adj_Data.loc[stock]['secID'][0], str(x) + 'Min_Timing'] = MinBuyTiming
 stock_Selected
 
 

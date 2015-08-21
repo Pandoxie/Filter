@@ -4,7 +4,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
-from pandas import *
+import pandas import pd
 from CAL.PyCAL import *
 
 start_date = Date(2015, 8, 15)
