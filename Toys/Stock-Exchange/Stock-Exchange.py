@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# 1, Obtain 'ExchangeRate'
+# 2, Subtract SZZS 'inc_rate' from Section 'ChangeIdx'
+# 3, Get corr from columns of 'section_Exchange_co_trend'
 import talib as tb
 import numpy as np
 import datetime as dt

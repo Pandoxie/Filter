@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# Obtain Stock Market List from CSV
+# Use 'isAppend' to determin whether the prog run is append mode or not
+
+
 import talib as tb
 import numpy as np
 import datetime as dt

@@ -1,10 +1,17 @@
+# Stock Filter
+# 1, Obtain 'end_date' Market Price (if Today, use latest Minute Price)
+# 2, Calcute price change within specified date range
+# 3, Determine whether a stock is 'New_Low' or 'Possible_New_Low' is ahead
+# 4, Sort and save results to 'RangeLow_Selected.csv'
+
+
 import talib as tb
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.cbook as cbook
-import pandas import pd
+import pandas as pd
 from CAL.PyCAL import *
 
 start_date = Date(2015, 8, 15)
@@ -17,6 +24,7 @@ start_date = cal.advanceDate(start_date, Period('0D'), BizDayConvention.Precedin
 end_date = cal.advanceDate(end_date, Period('0D'), BizDayConvention.Preceding)
 #ctime = dt.datetime.now().time().strftime('%H:%M')
 
+# Obtain Current Market closePrice
 if end_date == Date.todaysDate():
 	ctime = DataAPI.MktBarRTIntraDayGet(securityID=u"000001.XSHE",pandas="1")['barTime'].iloc[-1]
 	StockSnapShot = DataAPI.BarRTIntraDayOneMinuteGet(time=ctime,field="ticker,shortNM,closePrice",pandas="1")
@@ -27,7 +35,6 @@ else:
 	StockSnapShot = StockSnapShot[StockSnapShot['highestPrice']!=0]
 	StockSnapShot['closePrice'] = StockSnapShot['closePrice'] * StockSnapShot['accumAdjFactor']
 	StockSnapShot = StockSnapShot.rename(index = StockSnapShot['secID'], columns={'secShortName':'shortNM'}).loc[:,['shortNM', 'closePrice']]
-
 
 StockSnapShot['Price_Change'] = np.nan
 StockSnapShot['New_Low'] = False

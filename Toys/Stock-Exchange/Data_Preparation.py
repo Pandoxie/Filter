@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+# 1, Obtain 'selected_Sec_List' according to certian rules
+# 2, Get all 'market_Data' within date range
+# 3, Obtain section composition 'section_Info'
+# 4, Compute section daily change index 'section_Data'
+# 5, Compute section total avg_Chang store back to 'selected_Sec_List'
 import talib as tb
 import numpy as np
 import datetime as dt
@@ -8,7 +13,7 @@ import matplotlib.cbook as cbook
 import pandas as pd
 import CAL.PyCAL as cal
 
-Stock_ID = 101001002
+Stock_ID = 101001002 #Stock Classification ID
 start_Date = cal.Date(2015,5,1)
 end_Date = cal.Date(2015,6,1)
 fields = ['secID','secShortName','tradeDate','preClosePrice','openPrice','highestPrice','lowestPrice','closePrice','turnoverRate','marketValue']
@@ -40,13 +45,15 @@ def GetMktInfo(secID, beginDate, endDate, field):
 		MktInfo_df = DataAPI.MktEqudGet(secID=secID,beginDate=beginDate,endDate=endDate,field=field)
 	return MktInfo_df
 
-wholeSecList =DataAPI.SecTypeGet(field=u"",pandas="1")
-selected_Sec_List = wholeSecList[(wholeSecList['typeLevel']==6) & (wholeSecList['typeID'].map(isFirstDigits))]
+wholeSecList =DataAPI.SecTypeGet(field=u"",pandas="1") #All Types
+selected_Sec_List = wholeSecList[(wholeSecList['typeLevel']==6) & (wholeSecList['typeID'].map(isFirstDigits))] #Filter Stocks of certain type
 
 market_Data = pd.DataFrame({})
+#Obtain all Market Transaction Data from Start to End
 for date in biz_cal.bizDatesList(start_Date, end_Date):
 	market_Data = market_Data.append(DataAPI.MktEqudGet(secID=u"",ticker=u"",tradeDate=date.strftime('%Y%m%d'),beginDate=u"",endDate=u"",field=fields,pandas="1"), ignore_index= True)
 
+#Get maps between sections and stocks
 section_Info = pd.DataFrame({})
 for section in selected_Sec_List['typeID']:
 	try:
@@ -54,6 +61,7 @@ for section in selected_Sec_List['typeID']:
 	except :
 		print('No stock in: ' + selected_Sec_List.loc[selected_Sec_List.typeID==section, 'typeName'].values[0])
 
+#Compute sections change rate with time
 section_Data = pd.DataFrame({})
 for date in biz_cal.bizDatesList(start_Date, end_Date):
 	for section in selected_Sec_List['typeID']:
