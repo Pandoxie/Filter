@@ -103,7 +103,7 @@ if end_date < Date.todaysDate() and len(cal.bizDatesList(end_date, cal.advanceDa
 
 stock_Selected.ix[stock_Selected['Exit_Status']==1, 'avg_Gain'] = up_Limit
 stock_Selected.ix[stock_Selected['Exit_Status']==-1, 'avg_Gain'] = down_Limit
-Expectation = stock_Selected['avg_Gain'].values.sum()/float(len(stock_Selected))
+Expectation = stock_Selected[~np.isnan(stock_Selected['avg_Gain'])]['avg_Gain'].values.mean()
 
 print('Our Expectation is: ' + str(Expectation))
 stock_Selected
