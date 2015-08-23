@@ -69,7 +69,7 @@ for stock in StockSnapShot['secID']:
 stock_Selected = StockSnapShot[StockSnapShot['Suspension']==False].sort(columns='Price_Change', ascending=True).head(top_List).loc[:, ['secID', 'secShortName', 'closePrice', 'Price_Change', 'DayBuy_Tick', 'Buy_Signal_Date', 'Exit_Status', 'Exit_Date', 'Hold_Days', 'avg_Gain']]
 
 if end_date < Date.todaysDate() and len(cal.bizDatesList(end_date, cal.advanceDate(Date.todaysDate(), Period('0D'), BizDayConvention.Preceding))) > hold_Limit:
-	for stock in stock_Selected['secID']:
+	for stock in stock_Selected[stock_Selected['DayBuy_Tick']]['secID']:
 		stockBuyPrice = DataAPI.MktEqudGet(secID=stock,ticker=u"",tradeDate=(cal.advanceDate(Date.parseISO(stock_Selected.ix[stock_Selected['secID']==stock, 'Buy_Signal_Date'].values[0]), Period(str(Future_Gap)+'D'), BizDayConvention.Following)).strftime('%Y%m%d'),beginDate=u"",endDate=u"",field=u"tradeDate,openPrice,accumAdjFactor",pandas="1")
 		stockBuyPrice['openPrice'] = stockBuyPrice['openPrice'] * stockBuyPrice['accumAdjFactor']
 		stockBuyPrice = stockBuyPrice['openPrice'].values[0]
