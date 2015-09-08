@@ -12,7 +12,7 @@ import pandas as pd
 import CAL.PyCAL as cal
 
 start_Date = cal.Date(2014,10,1)
-end_Date = cal.Date(2015,4 ,1)
+end_Date = cal.Date(2015,4,1)
 
 
 section_Data = pd.read_csv('section_Data-' + start_Date.toISO() + '-' + end_Date.toISO() + '.csv', encoding='utf-8', parse_dates=True, index_col='tradeDate', usecols=['tradeDate','typeID','typeName','ChangeIdx'])
